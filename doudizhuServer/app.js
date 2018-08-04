@@ -1,64 +1,36 @@
-const socket = require('socket.io');
+const socket = require("socket.io");
 const app = socket(3000);
-const myDB = require('./db');
-const defines = require('./defines');
-const gameController = require('./game/game-controller');
-console.log('defines = ' + defines.defaultGoldCount);
+const myDB = require("./db");
+//数据库配置
 myDB.connect({
     "host": "127.0.0.1",
     "port": 3306,
     "user": "root",
-    "password": "chu7758521",
-    "database": "doudizhu_wangyi"
+    "password": "star1314",
+    "database": "DDZ"
 });
-myDB.getPlayerInfoWithUniqueID('100000', (err, data) => {
-    console.log('data = ' + JSON.stringify(data));
+/**
+ * 创建一个玩家列表                                                     
+ */
+myDB.createPlayerInfo("10000", "1000", "伽蓝", 500, "https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1533403871612&di=5d3f18e0304651ea5f994c1e978662a7&imgtype=0&src=http%3A%2F%2Fuploads.oh100.com%2Fallimg%2F1707%2F125-1FH6102522.png");
+
+
+/**
+ * 获取玩家信息
+ */
+myDB.createPlayerInfoWithAccountID("100", (err, data) => {
+    if (err) {
+        console.log("err=====>", err);
+    } else {
+        console.log("data====>", data);
+
+    }
 });
-app.on('connection', function (socket) {
-    console.log('a  user connection');
-    socket.emit('connection', 'connection success');
-    socket.on('notify', (notifyData) => {
-        console.log('notify ' + JSON.stringify(notifyData));
-        switch (notifyData.type) {
-            case 'login':
-                let uniqueID = notifyData.data.uniqueID;
-                let callBackIndex = notifyData.callBackIndex;
-                myDB.getPlayerInfoWithUniqueID(uniqueID, (err, data) => {
-                    if (err) {
-                        console.log('err =  ' + err);
-                    } else {
-                        console.log('data =  ' + JSON.stringify(data));
-                        if (data.length === 0) {
-                            let loginData = notifyData.data;
-                            myDB.createPlayerInfo(
-                                loginData.uniqueID,
-                                loginData.accountID,
-                                loginData.nickName,
-                                defines.defaultGoldCount,
-                                loginData.avatarUrl
-                            );
-                            // {"unique_id":"100000",
-                            //     "account_id":"2162095",
-                            //     "nick_name":"小明14",
-                            //     "gold_count":100,
-                            //     "avatar_url":"https://ss2.bdstatic.com/70cFSh_Q1YnxGkpoWK1HF6hhy/it/u=1665110666,1033370706&fm=27&gp=0.jpg"}]
-                            gameController.createPlayer({
-                                "unique_id": notifyData.data.uniqueID,
-                                "account_id": notifyData.data.accountID,
-                                "nick_name": notifyData.data.nickName,
-                                "gold_count": defines.defaultGoldCount,
-                                "avatar_url": notifyData.data.avatarUrl
-                            }, socket,callBackIndex);
-                        } else {
-                            console.log('data = ' + JSON.stringify(data));
-                            gameController.createPlayer(data[0], socket, callBackIndex);
-                        }
-                    }
-                });
-                break;
-            default:
-                break;
-        }
+app.on("connection", (socket) => {
+    console.log("a user connection");
+    socket.emit("connection", "connection success");
+    socket.on("notify", (notifyData) => {
+        console.log("notify" + JSON.stringify(notifyData));
 
     });
 });
