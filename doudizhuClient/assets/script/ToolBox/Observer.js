@@ -2,7 +2,7 @@ const Observer = {
     evnetMap: new Map(),
     //注册事件
     selfon(msgType, callback, target) {
-        if (target === 'undefined') {
+        if (target === "undefined") {
             console.log(`注册事件：${msgType}没有指定this`);
         }
         let eventControl = { callback, target };
@@ -21,10 +21,14 @@ const Observer = {
             }
         }
         events.add(eventControl);
-        console.log('events', events);
+        console.log("events", events);
     },
     //发送消息
-    selfemit(msgType, data) {
+    /**
+     * @param {string} msgType 事件类型字符串
+     * @param {any} data 参数集合  
+     */
+    selfemit(msgType, ...data) {
         /**
          * 寻找已注册的事件
          * 存在 取出set 对象 
@@ -67,7 +71,7 @@ const Observer = {
                 }
             }
             if (events.size == 0) {
-                console.log(msgType, '====0');
+                console.log(msgType, "====0");
                 this.evnetMap.delete(msgType);
             }
         } else {

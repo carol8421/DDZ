@@ -1,6 +1,8 @@
 const socket = require("socket.io");
 const app = socket(3000);
 const myDB = require("./db");
+const defines = require("./defines");
+const gameController = require("./game/game_control")
 //数据库配置
 myDB.connect({
     "host": "127.0.0.1",
@@ -9,28 +11,32 @@ myDB.connect({
     "password": "star1314",
     "database": "DDZ"
 });
-/**
- * 创建一个玩家列表                                                     
- */
-myDB.createPlayerInfo("10000", "1000", "伽蓝", 500, "https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1533403871612&di=5d3f18e0304651ea5f994c1e978662a7&imgtype=0&src=http%3A%2F%2Fuploads.oh100.com%2Fallimg%2F1707%2F125-1FH6102522.png");
-
-
-/**
- * 获取玩家信息
- */
-myDB.createPlayerInfoWithAccountID("100", (err, data) => {
-    if (err) {
-        console.log("err=====>", err);
-    } else {
-        console.log("data====>", data);
-
-    }
-});
 app.on("connection", (socket) => {
-    console.log("a user connection");
     socket.emit("connection", "connection success");
-    socket.on("notify", (notifyData) => {
-        console.log("notify" + JSON.stringify(notifyData));
+    socket.on("notify", (notifydata) => {
+        console.log("notify==================>", JSON.stringify(notifydata), "==================>\n");
+        let _n_data = notifydata.data
+        let _callBackIndex = notifydata.callBackIndex
+        switch (notifydata.type) {
+            case "wx_login":
+                myDB.getPlayerInfoWithUniqueID(notifydata.data.uniqueID, (err, data) => {
+                    if (err) {
+                        console.log(err);
+                        return
+                    }
+                    if (data.length == 0) {
+                        myDB.createPlayerInfoWithAccountID(_n_data.uniqueID, _n_data.accountID, _n_data.nickName, defines.default.goldCount, _n_data.avataUrl)
+                        gameController.createPlayer(
+                            { "unique_id": _n_data.uniqueID, "account_id": _n_data.accountID, "nick_name": _n_data.nickName, "gold_count": defines.default.goldCount, "avatar_url": _n_data.avataUrl }, socket, _callBackIndex
+                        )
+                    } else {
+                        gameController.createPlayer(data[0], socket, _callBackIndex)
+                    }
+                })
+                break;
 
+            default:
+                break;
+        }
     });
 });
